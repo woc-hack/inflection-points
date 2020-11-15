@@ -8,14 +8,6 @@ Studying inflection points in open source software evolution.
   * Kuljit Chahal
   * James Walden
 
-## Tasks
-
-  * Collect a sample of projects with at least N years of git history.
-  * Potential additional filters:
-      * Popularity (as measured by ?)
-      * Programming language (highest usage above 50% according to GH stats)
-  * Can we create time series of commits/month or unique authors/month using WoC?
-
 ## Research Questions
   * What are the types of inflection points in software evolution?
       * X% increase in commits/month
@@ -29,6 +21,17 @@ Studying inflection points in open source software evolution.
       * Bot adoption: check commit messages
       * Users adopt fork or competing project: check forks, compare to other projects 
 
+## Tasks
+
+  * Determine criteria for sampling projects. 
+      * At least N years of history.
+      * Popularity (as measured by ?)
+      * Programming language (highest usage above 50% according to GH stats) is language X
+  * Collect sample of projects
+  * Create time series of commits/month or unique authors/month using WoC.
+
+
 ## Schedule
 
   * *Checkpoint 1 (Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
+  * *Checkpoint 2 (Nov 18):* Have sample of projects to examine. Determine how to create time series.
