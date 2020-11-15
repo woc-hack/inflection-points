@@ -26,12 +26,18 @@ Studying inflection points in open source software evolution.
   * Determine criteria for sampling projects. 
       * At least N years of history.
       * Popularity (as measured by number of authors, stars, watchers, etc.)
-      * Programming language (highest usage above 50% according to GH stats) is language X
-  * Collect sample of projects
+      * Programming language (highest usage above 50% according to GH stats) is language X.
+  * Collect sample of projects from WoC.
   * Create time series of commits/month or unique authors/month using WoC.
 
 
 ## Schedule
 
-  * *Checkpoint 1 (Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
-  * *Checkpoint 2 (Nov 18):* Have sample of projects to examine. Determine how to create time series.
+Checkpoints are scheduled at 10-11:30am EST.
+
+  * *Checkpoint 1 (Sun, Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
+  * *Checkpoint 2 (Weds, Nov 18):* Have sample of projects to examine. Determine how to create time series.
+  * *Checkpoint 3 (Fri, Nov 20):*
+  * *Checkpoint 4 (Wed, Nov 25):*
+  * *Checkpoint 5 (Wed, Dec 2):*
+  * *Final presentations (Sat, Dec 5):* 10am-1pm EST
