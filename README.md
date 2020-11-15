@@ -25,7 +25,7 @@ Studying inflection points in open source software evolution.
 
   * Determine criteria for sampling projects. 
       * At least N years of history.
-      * Popularity (as measured by ?)
+      * Popularity (as measured by number of authors, stars, watchers, etc.)
       * Programming language (highest usage above 50% according to GH stats) is language X
   * Collect sample of projects
   * Create time series of commits/month or unique authors/month using WoC.
