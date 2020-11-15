@@ -36,7 +36,7 @@ Studying inflection points in open source software evolution.
 Checkpoints are scheduled at 10-11:30am EST.
 
   * *Checkpoint 1 (Sun, Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
-  * *Checkpoint 2 (Weds, Nov 18):* Have sample of projects to examine. Determine how to create time series.
+  * *Checkpoint 2 (Weds, Nov 18):* Refine RQs. Have sample of projects. Determine how to create time series. Plan for next checkpoint.
   * *Checkpoint 3 (Fri, Nov 20):*
   * *Checkpoint 4 (Wed, Nov 25):*
   * *Checkpoint 5 (Wed, Dec 2):*
