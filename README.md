@@ -14,12 +14,24 @@ Studying inflection points in open source software evolution.
       * X% decrease in commits/month
       * X% increase in unique authors/month
       * X% decrease in unique authors/month
+      * X% increase in users
+      * X% decrease in users
+      * X% increase in truck factor
+      * X% decrease in truck factor
+      * X% increase in popularity
+      * X% decrease in popularity
+      * X% increase in activity (in terms of pull requests/forks) 
+      * X% decrease in activity (in terms of pull requests/forks)
+     
   * What are the causes of inflection points in software evolution?
       * Migration to GitHub: check commit messages
       * New releases: check for release tags near inflection point
       * Security events: check news or CVE database for important dates
       * Bot adoption: check commit messages
       * Users adopt fork or competing project: check forks, compare to other projects 
+      * core team reorganization (e.g. a project lead leaving the project/ newcomers bringing in fresh ideas)
+      * change in team culture e.g. from hostile to more inclusive (may be through sentiment analysis) or vice-versa
+      
 
 ## Tasks
 
