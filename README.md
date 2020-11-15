@@ -28,3 +28,7 @@ Studying inflection points in open source software evolution.
       * Security events: check news or CVE database for important dates
       * Bot adoption: check commit messages
       * Users adopt fork or competing project: check forks, compare to other projects 
+
+## Schedule
+
+  * *Checkpoint 1 (Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
