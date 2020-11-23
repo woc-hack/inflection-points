@@ -1,0 +1,162 @@
+---
+title: "Segmented Regression for Open Source Monthly Time Series"
+author: "James Walden"
+date: "11/22/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(segmented)
+library(tidyverse)
+```
+
+## Data
+
+I'm using OpenSSL data from my MSR'20 paper, which includes time series data from project inception to the end of 2019.
+
+I select data from 2012-2016 to analyze and call it commits for ease of typing.
+
+```{r load_data}
+openssl_commits <- read_csv('openssl-commits-per-month.csv', col_types="Di")
+openssl_nearhb_commits <- openssl_commits %>% filter(Date >= as.Date('2012-01-01') & Date <= as.Date('2016-12-31'))
+commits <- openssl_nearhb_commits
+commits
+```
+## Visualizing the Time Series
+
+```{r, echo=FALSE, fig.height=6, fig.width=10}
+g <- ggplot(commits, aes(x=Date, y=ncommits)) + geom_point() + geom_line(group=1) + xlab("Month") + ylab("Number of Commits")
+g
+```
+
+## Linear Model of Commits
+
+This section shows that linear regression cannot accurately model the time series from start to finish.
+
+Linear models handle dates by converting them to integers via R's as.numeric() function. These numbers represent the number of days since January 1, 1970.
+
+```{r}
+linmodel <- lm(ncommits ~ Date, data = commits)
+summary(linmodel)
+```
+```{r}
+lincoefs <- coef(linmodel) # linear regression intercept and slope coefficients
+g + geom_abline(intercept = lincoefs[1], slope = lincoefs[2]) +
+    ggtitle("Linear Regression Model of OpenSSL Commits 2012-2016")
+```
+
+## Segmented Regression
+
+```{r}
+segmodel <- segmented.lm(linmodel, seg.Z = ~ Date)
+summary(segmodel)
+```
+We can obtain just the breakpoints by subsetting the model object.
+```{r}
+segmodel$psi
+as.Date(segmodel$psi[2], origin=lubridate::origin)
+```
+Segmented started its process of finding breakpoints by guessing an initial value, which is June 16, 2014.
+
+We can specify our own guesses with the "psi" argument to segmented().
+```{r}
+as.Date(segmodel$psi[1], origin=lubridate::origin)
+```
+By default, the segmented model found only a single breakpoint in the time series.
+
+Add predicted values from segmented regression model to commits data frame, so we can plot actual against predicted values.
+```{r}
+commits$npred <- predict.segmented(segmodel)
+ggplot(commits, aes(x=Date)) + 
+  geom_line(aes(y = ncommits), color = "black") + 
+  geom_line(aes(y = npred), color="blue", linetype="twodash") +
+  ggtitle("Segmented Regression Model of OpenSSL Commits 2012-2016")
+```
+Let's create segmented models with multiple breakpoints.
+```{r}
+seg2 <- segmented.lm(linmodel, seg.Z = ~Date, npsi = 2)
+summary(seg2)
+```
+
+```{r}
+commits$npred2 <- predict.segmented(seg2)
+ggplot(commits, aes(x=Date)) + 
+  geom_line(aes(y = ncommits), color = "black") + 
+  geom_line(aes(y = npred2), color="blue", linetype="twodash") +
+  ggtitle("Segmented Regression Model with 2 Breakpoints")
+```
+```{r}
+seg3 <- segmented.lm(linmodel, seg.Z = ~Date, npsi = 3)
+summary(seg3)
+```
+
+```{r}
+commits$npred3 <- predict.segmented(seg3)
+ggplot(commits, aes(x=Date)) + 
+  geom_line(aes(y = ncommits), color = "black") + 
+  geom_line(aes(y = npred3), color="blue", linetype="twodash") +
+  ggtitle("Segmented Regression Model with 3 Breakpoints")
+```
+
+# Will segmented always find a breakpoint?
+
+Let's investigate how segmented handles a series with no breakpoints, because it's a horizontal line.
+
+```{r}
+nobp <- tibble(Date=commits$Date, n=1)
+nobp %>% head(5)
+```
+```{r}
+nobplm <- lm(n ~ Date, data=nobp)
+nobpseg <- segmented(nobplm, seg.Z = ~Date)
+summary(nobpseg)
+```
+
+Segmented finds a breakpoint, though the magnitude of the coefficient is about 10^-16 so it has almost no effect.
+
+Let's find the date of the nonexistent breakpoint.
+```{r}
+nobpseg$psi
+as.Date(nobpseg$psi[1], origin=lubridate::origin)
+```
+
+The magnitude of the U1.Date coefficient is about 10^-16 so it has no visible effect on the line.
+```{r}
+nobp$npred <- predict.segmented(nobpseg)
+ggplot(nobp, aes(x=Date)) + 
+  geom_line(aes(y = n), color = "black") + 
+  geom_line(aes(y = npred), color="blue", linetype="twodash") +
+  ggtitle("Segmented Regression Model of No Slope Line")
+```
+
+Let's try modeling a series that's almost a horizontal line but that has normally distributed variation around a value (10).
+```{r}
+nobp2 <- tibble(Date=commits$Date, n=10+rnorm(nrow(commits)))
+nobp2 %>% head(5)
+```
+
+```{r}
+nobplm2 <- lm(n ~ Date, data=nobp2)
+nobpseg2 <- segmented(nobplm2, seg.Z = ~Date)
+summary(nobpseg2)
+```
+
+The U1.Date coefficient is no longer tiny once we added noise.
+```{r}
+nobpseg$psi
+as.Date(nobpseg$psi[2], origin=lubridate::origin)
+```
+
+The effect is still small enough to not be visible on the line.
+```{r}
+nobp$npred <- predict.segmented(nobpseg)
+ggplot(nobp, aes(x=Date)) + 
+  geom_line(aes(y = n), color = "black") + 
+  geom_line(aes(y = npred), color="blue", linetype="twodash") +
+  ggtitle("Segmented Regression Model of No Slope Line")
+```
+
+If we use segmented to identify the existence of breakpoints, we will have to identify a cutoff value for the magnitude of the U1.Date coefficient.

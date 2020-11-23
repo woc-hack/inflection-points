@@ -1,0 +1,44 @@
+# My temporary directories
+refs/
+repos/
+
+# Editor temp files
+*~
+*.sw?
+tags
+
+# Temp object files
+*.o
+*.py[co]
+
+# TeX temp files
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# R junk left by vim R plugin
+.RData
+.Rhistory
+
+# OpenOffice junk
+.~lock.*
+
+# Mac junk
+.DS_Store
+
+# Windows junk
+~$*
+Desktop.ini
+Thumbs.db*
+*Zone.Identifier:$DATA

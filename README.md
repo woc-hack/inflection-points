@@ -49,7 +49,7 @@ Checkpoints are scheduled at 10-11:30am EST.
 
   * *Checkpoint 1 (Sun, Nov 15):* Present tasks and research questions. Complete WoC tutorial before or after checkpoint.
   * *Checkpoint 2 (Weds, Nov 18):* Refine RQs. Have sample of projects. Determine how to create time series. Plan for next checkpoint.
-  * *Checkpoint 3 (Fri, Nov 20):*
+  * *Checkpoint 3 (Fri, Nov 20):* Obtained project sample based on commits and authors using MongoDB. Investigating clickhouse for time series data. Research segmented regression for modeling time series.
   * *Checkpoint 4 (Wed, Nov 25):*
   * *Checkpoint 5 (Wed, Dec 2):*
   * *Final presentations (Sat, Dec 5):* 10am-1pm EST
