@@ -1,0 +1,137 @@
+---
+title: "Changepoint Detection for Open Source Monthly Time Series"
+author: "James Walden"
+date: "11/22/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(changepoint)
+library(changepoint.np)
+library(tidyverse)
+```
+
+# Example: single change in mean
+
+We create a dataset of 100 randomly distributed data points, the first 50 with mean 0 and the second 50 with mean 5, creating a clear changepoint at 50.
+```{r}
+set.seed(1)
+ocp <- data.frame(
+  x = 1:100,
+  y = c(rnorm(50,0,1), rnorm(50,5,1))
+)
+```
+
+We first use `changepoint` to find the changepoint in the series at 50.
+```{r}
+one.cpt <- cpt.mean(ocp$y)
+cpts(one.cpt)
+```
+
+We next use the nonparametric variant `changepoint.np` to find the changepoint in the series with the same result.
+```{r}
+one.cpt.np <- changepoint.np::cpt.np(ocp$y)
+cpts(one.cpt.np)
+```
+
+# Example: two changes of mean
+
+We create a dataset of 100 randomly distributed data points, with two changes in mean at 30 and 70.
+```{r}
+tcp <- data.frame(
+  x = 1:100,
+  y = c(rnorm(30, 2), rnorm(40, 0), rnorm(30, 1))
+)
+plot(tcp)
+abline(v = c(30, 70), col="red")
+```
+
+We first use `changepoint`, finding only one changepoint in the series, the first one at 30.
+```{r}
+tcp.cpt <- cpt.mean(tcp$y)
+cpts(tcp.cpt)
+```
+
+We next use `changepoint.np` which finds both changepoints at 30 and 70.
+```{r}
+tcp.cpt.np <- changepoint.np::cpt.np(tcp$y)
+cpts(tcp.cpt.np)
+```
+
+# Example: no changes in mean
+
+We create a dataset of 100 randomly distributed data points, with no changes in mean.
+```{r}
+zcp <- data.frame(
+  x = 1:100,
+  y = c(rnorm(100,0,1))
+)
+plot(zcp)
+```
+
+We first use `changepoint`, which returns an empty vector with no changepoints.
+```{r}
+zcp.cpt <- cpt.mean(zcp$y)
+cpts(zcp.cpt)
+```
+```{r}
+length(cpts(zcp.cpt))
+```
+
+We next use `changepoint.np` which finds the same result.
+```{r}
+zcp.cpt.np <- changepoint.np::cpt.np(zcp$y)
+cpts(zcp.cpt.np)
+```
+
+# Finding changepoints in OpenSSL
+
+I'm using OpenSSL data from my MSR'20 paper, which includes time series data from project inception to the end of 2019.
+
+I select data from 2012-2016 to analyze and call it commits for ease of typing.
+
+```{r load_openssl_data}
+openssl_commits <- read_csv('openssl-commits-per-month.csv', col_types="Di")
+openssl_nearhb_commits <- openssl_commits %>% filter(Date >= as.Date('2012-01-01') & Date <= as.Date('2016-12-31'))
+commits <- openssl_nearhb_commits
+commits
+```
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+g <- ggplot(commits, aes(x=Date, y=ncommits)) + geom_point() + geom_line(group=1) + xlab("Month") + ylab("Number of Commits")
+g
+```
+
+We first try changepoint.
+```{r}
+openssl.cpt <- cpt.mean(commits$ncommits)
+changepoints <- cpts(openssl.cpt)
+changepoints
+```
+```{r}
+openssl.cp.date <-  commits %>% slice(changepoints) %>% select(Date) %>% pull()
+commits %>% slice(changepoints)
+```
+```{r}
+g + geom_vline(xintercept=openssl.cp.date, color="blue", linetype="dashed") + 
+    ggtitle("changepoint package changepoints in OpenSSL commits 2012-2016")
+```
+
+We next use the nonparametric variant `changepoint.np` which finds two changepoints.
+```{r}
+openssl.cpt.np <- cpt.np(commits$ncommits)
+changepoints.np <- cpts(openssl.cpt.np)
+changepoints.np
+```
+
+```{r}
+openssl.cp.dates <- commits %>% slice(changepoints.np) %>% select(Date) %>% pull()
+commits %>% slice(changepoints.np)
+```
+```{r}
+g + geom_vline(xintercept=openssl.cp.dates, color="red", linetype="dashed") + 
+    ggtitle("changepoint.np changepoints in OpenSSL commits 2012-2016")
+```
+
