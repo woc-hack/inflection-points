@@ -2,8 +2,9 @@
 #
 # Read monthly time series of commits from CSV file, identify change-
 # points using non-parametric PELT algorithm, and write changepoints
-# to CSV file. If there were no changepoints, the output file should 
-# have a header line but no other content.
+# to CSV file. If file contained data but there were no changepoints, 
+# the output file should have a header line but no other content. If
+# the input file contained no data, an empty output fill will be created.
 #
 #-------------------------------------------------------------------------- 
 suppressPackageStartupMessages(library(tidyverse))
@@ -17,7 +18,7 @@ suppressPackageStartupMessages(library(changepoint.np))
 #-------------------------------------------------------------------------- 
 read_commit_ts <- function(path) {
     colnames <- c('year_month','ncommits','timestamp')
-    commits_ts <- read_csv(file=path, skip=1, col_names=colnames, col_types='cii')
+    commits_ts <- read_csv(file=path, col_names=colnames, col_types='cii')
     commits_ts <- commits_ts %>%
         mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
         complete(date=seq.Date(min(date), max(date), by="month"), fill=list(ncommits=0)) %>%
@@ -33,10 +34,6 @@ read_commit_ts <- function(path) {
 #   by row number and year-month in date format.
 #-------------------------------------------------------------------------- 
 find_changepoints <- function(commits_ts) {
-    cnp <- cpt.np(commits_ts$ncommits, minseglen=2)
-    changepoints <- cpts(cnp)
-    nchangepoints <- length(changepoints)
-
     changes <- tibble(
                     row = integer(), 
                     date = Date(), 
@@ -44,6 +41,14 @@ find_changepoints <- function(commits_ts) {
                     post_mean = double(),
                     diff_means = double()
                     )
+
+    if (nrow(commits_ts) > 1) {
+        cnp <- cpt.np(commits_ts$ncommits, minseglen=2)
+        changepoints <- cpts(cnp)
+        nchangepoints <- length(changepoints)
+    } else { # can't find change points with only one time period
+        nchangepoints <- 0
+    }
 
     if (nchangepoints > 0) {
         for (i in 1:nchangepoints) { 
@@ -75,7 +80,6 @@ find_changepoints <- function(commits_ts) {
     changes
 }
 
-
 #-------------------------------------------------------------------------- 
 # Parse command line args and get paths of input CSV time series files
 #-------------------------------------------------------------------------- 
@@ -93,8 +97,15 @@ inpaths <- dir_ls(indir, glob='*.csv')
 #-------------------------------------------------------------------------- 
 for (inpath in inpaths) {
     print(paste("Processing", inpath))
-    oss_ts <- read_commit_ts(inpath)
-    oss_cps <- find_changepoints(oss_ts)
     outfn <- str_c(path_ext_remove(path_file(inpath)), '-changepoints.csv')
-    write_csv(oss_cps, path(outdir, outfn))
+    outpath <- path(outdir, outfn)
+
+    if (is_file_empty(inpath)) {
+        print(paste("\t", inpath, "is an empty file."))
+        file.create(outpath)
+    } else {
+        oss_ts <- read_commit_ts(inpath)
+        oss_cps <- find_changepoints(oss_ts)
+        write_csv(oss_cps, outpath)
+    }
 }
