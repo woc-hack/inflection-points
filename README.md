@@ -36,6 +36,7 @@ Studying inflection points in open source software evolution.
   * Sample of projects from WoC R dataset that have
       * 50 authors
       * 5000 commits
+  * Time series on da0 in /data/play/inflection_points/timeseries-data/
 
 ## Tasks
 
@@ -47,6 +48,7 @@ Studying inflection points in open source software evolution.
   * [X] (James) Compute changepoint data for commit time series.
   * [X] (James) Check-in changepoint script.
   * [ ] (Kuljit) Check-in project sample script and/or instructions.
+  * [ ] (Noah) Investigate why we could not obtain time series for all projects.
   * [ ] (Noah) Check-in time series scripts and instructions to use.
   * [ ] (Noah) Obtain number of unique authors/month time series for sample.
   * [ ] (Kuljit) Obtain files changed/month time series for sample.
