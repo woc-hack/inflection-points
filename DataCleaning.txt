@@ -1,0 +1,5 @@
+Converted unix timestamp to date, in the LibreOffice Calc spreadsheet software, using the formula =(A1/86400)+DATE(1970,1,1), where A1 is the cell with the unix timestamp.
+Calculated Interval (or age in months) in two dates (EarlestCommitDate, and LatestCommitDate), in the spreadsheet, using the function =DATEDIF(E1,G1,"m"), where E1, G1 are the cells with date values, and "m" indicates the difference in months.
+Then selected projects with: Interval>=48, output: 8438 projects
+Some projects had EarliestCommitDate set to 0, which is an invalid timestamp. So removed such projects.
+Final set: 8311 projects
