@@ -36,6 +36,8 @@ Studying inflection points in open source software evolution.
   * Sample of projects from WoC R dataset that have
       * 50 authors
       * 5000 commits
+      * Age 48 months or more
+      * EarleistCommitDate(in unix timestamp) > 0
   * Time series on da0 in /data/play/inflection_points/timeseries-data/
 
 ## Tasks
