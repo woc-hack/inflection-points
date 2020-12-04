@@ -49,9 +49,9 @@ Studying inflection points in open source software evolution.
   * [X] (James) Write changepoint detection script for commits.
   * [X] (James) Compute changepoint data for commit time series.
   * [X] (James) Check-in changepoint script.
+  * [X] (Noah) Check-in time series scripts and instructions to use.
   * [ ] (Kuljit) Check-in project sample script and/or instructions.
   * [ ] (Noah) Investigate why we could not obtain time series for all projects.
-  * [ ] (Noah) Check-in time series scripts and instructions to use.
   * [ ] (Noah) Obtain number of unique authors/month time series for sample.
   * [ ] (Kuljit) Obtain files changed/month time series for sample.
   * [ ] (James) Visualize changepoints for sample of projects.
