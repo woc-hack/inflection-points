@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Print timestamps for all commits of a project provided on cmdline.
 
 Usage: python project_times.py project_name

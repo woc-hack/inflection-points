@@ -1,17 +1,22 @@
-
-# python script for retrieving projects from the WoC database
+#!/usr/bin/env python
+#
+# Retrieve projects that meet our criteria for having sufficient data
+# (number of authors, number of commits) to analyze inflection points
+# from World of Code Mongo database. We use the version R dataset.
+#
+#-------------------------------------------------------------------------- 
 
 import pymongo
 import bson
 import csv
 
-# connect with the Server and use the collection proj_metadata.R from the WoC database
+# connect to server and use collection proj_metadata.R from WoC database
 client = pymongo.MongoClient("mongodb://da1.eecs.utk.edu/")
 db = client ['WoC']
 coll = db['proj_metadata.R']
 print("Extracting..")
 
-#select the projects using the criteria: Authors >= 50, Numcommits >= 5000
+#select projects using the criteria: Authors >= 50, Numcommits >= 5000
 data = coll.find( {"NumAuthors": {"$gte":50} ,"NumCommits": {"$gte":5000}})
 
 documents = list(data)

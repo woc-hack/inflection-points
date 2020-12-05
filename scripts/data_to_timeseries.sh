@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Retrieve number of commits time series for each project in the sample
+# of projects obtained from MongoDB.
+#
+#-------------------------------------------------------------------------- 
 
 # Run in batches of N
 N=30
