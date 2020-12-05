@@ -1,0 +1,2 @@
+cd changepoints
+wc -l * | sort -n | sed 's/^[[:blank:]]*//' | tr ' ' ',' | sed ''

@@ -1,0 +1,201 @@
+---
+title: "Changepoint EDA"
+author: "James Walden"
+date: "12/4/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(changepoint.np)
+library(fs)
+library(lubridate)
+```
+
+```{r data, include=FALSE}
+data_dir <- '../data'
+commits_dir <- path(data_dir, 'commits')
+ncommits_path <- path(data_dir, 'ncommits.csv')
+nchangepoints_path <- path(data_dir, 'nchangepoints.csv')
+
+pcommits <- read_csv(ncommits_path, col_names=c('nmonths','project'), col_types="ic")
+pchangepoints <- read_csv(nchangepoints_path, col_names=c('nchangepoints','project'), col_types="ic")
+```
+
+```{r data_functions, include=FALSE}
+read_commit_ts <- function(commits_path) {
+    colnames <- c('year_month','ncommits','timestamp')
+    commits_ts <- read_csv(file=commits_path, col_names=colnames, col_types='cii')
+    commits_ts <- commits_ts %>%
+        mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
+        complete(date=seq.Date(min(date), max(date), by="month"), fill=list(ncommits=0)) %>%
+        mutate(year_month=str_c(year(date),str_pad(month(date),2,"left","0"),sep='-'),
+               t=row_number(),
+               project=path_ext_remove(path_file(commits_path))
+              )
+    commits_ts
+}
+```
+
+```{r changepoint_functions}
+find_changepoints <- function(commits_ts) {
+    changes <- tibble(
+                    row = integer(), 
+                    date = Date(), 
+                    pre_mean = double(),
+                    post_mean = double(),
+                    diff_means = double()
+                    )
+
+    if (nrow(commits_ts) > 1) {
+        cnp <- cpt.np(commits_ts$ncommits, minseglen=2)
+        changepoints <- cpts(cnp)
+        nchangepoints <- length(changepoints)
+    } else { # can't find change points with only one time period
+        nchangepoints <- 0
+    }
+
+    if (nchangepoints > 0) {
+        for (i in 1:nchangepoints) { 
+            if (i == 1) {
+                begin_row <- 1
+            } else {
+                begin_row <- changepoints[i-1]
+            }
+            if (i == nchangepoints) {
+                end_row <- nrow(commits_ts)
+            } else {
+                end_row <- changepoints[i+1]
+            }
+            pre_change_mean <- commits_ts %>% 
+                slice(begin_row:changepoints[i]) %>%
+                summarize(mean(ncommits)) %>%
+                pull()
+            post_change_mean <- commits_ts %>% 
+                slice(changepoints[i]:end_row) %>%
+                summarize(mean(ncommits)) %>%
+                pull()
+            changes <- changes %>% add_row(row=changepoints[i],
+            date=commits_ts %>% slice(changepoints[i]) %>% select(date) %>% pull(),
+            pre_mean=pre_change_mean,
+            post_mean=post_change_mean,
+            diff_means=post_change_mean - pre_change_mean)
+        }
+    }
+    changes
+}
+```
+
+
+```{r graph_functions}
+# Plot time series graph of a single project
+plot_commit_ts <- function(ts) {
+  ggplot(data=ts, aes(x=date,y=ncommits)) + geom_point() + geom_line() +
+    xlab("Date") +
+    ylab("Number of Commits")
+}
+
+# Plot time series graph of a single project with changepoints as verticle dashed lines
+plot_commit_ts_with_cps <- function(ts) {
+  cnp <- cpt.np(ts$ncommits, minseglen=2)
+  changepoints <- cpts(cnp)
+  nchangepoints <- length(changepoints)
+  
+  g <- ggplot(data=ts, aes(x=date,y=ncommits)) + geom_point() + geom_line() +
+        xlab("Date") +
+        ylab("Number of Commits")
+  
+  if (nchangepoints > 0) {
+    for(cp in changepoints) {
+      g <- g + geom_vline(xintercept=, color="blue", linetype="dashed") 
+    }
+  } else {
+    g
+  }
+}
+
+# Merge time series to use in plot_multiple_ts()
+merge_commit_ts <- function(orig_ts, append_ts) {
+  orig_ts <- orig_ts %>% relocate(project, t)
+  append_ts <- append_ts %>% relocate(project, t)
+  bind_rows(orig_ts, append_ts)
+}
+
+# Plot time series graph of multiple projects in data from merge_commit_ts()
+plot_multiple_ts <- function(merged_ts) {
+    ggplot(data=merged_ts, aes(x=t,y=ncommits,group=project,color=project)) + geom_point() + geom_line() +
+      xlab("Months") +
+      ylab("Number of Commits")
+}
+```
+
+# Distribution of Project Duration
+
+Let us look at how many months of data we have for each project in our dataset.
+```{r, echo=FALSE, fig.height=6, fig.width=10}
+g <- ggplot(data=pcommits) + 
+     geom_histogram(aes(x=nmonths), color="black", fill="white", binwidth=1) +
+     xlab("Number of Months") +
+     ylab("Number of Projects")
+g
+```
+Our data is heavy tailed to the right, so let's examine the data as a box plot.
+```{r, echo=FALSE, fig.height=2, fig.width=10}
+g <- ggplot(data=pcommits) + 
+     geom_boxplot(aes(x=nmonths)) +
+     xlab("Number of Months")
+g
+```
+Let's examine the biggest outliers.
+```{r}
+pcommits %>% filter(nmonths>400)
+```
+There are 21 lexlib projects, all with large amounts of history.
+```{r}
+pcommits %>% filter(str_detect(project, '^lexlib_'))
+```
+When checking out the repository with the second longest duration according to our data, https://github.com/ronnywang/twlaw, git log shows commits only from Nov 2016 to Sep 2020, which is a much shorter time period than 458 months. On the other hand, the brlcad mirror repository, https://github.com/earl-ducaine/brlcad-mirror, had commits from Dec 1983 to Dec 2019, which is 428 months. I couldn't definitely identify the lexlib project, which has the longest duration at 506 months.
+
+# Distribution of Project Changepoints
+
+Let us look at how many months of data we have for each project in our dataset.
+```{r, echo=FALSE, fig.height=6, fig.width=10}
+g <- ggplot(data=pchangepoints) + 
+     geom_histogram(aes(x=nchangepoints), color="black", fill="white", binwidth=1) +
+     xlab("Number of Changepoints") +
+     ylab("Number of Projects")
+g
+```
+
+# A sample of projects: 40 segments of history
+
+```{r}
+fouryears <- pcommits %>% filter(nmonths==40)
+fouryears
+```
+## Computing Change Points for the Samples
+
+```{r}
+
+```
+
+
+## Comparing Time Series of Different Projects
+
+```{r, echo=FALSE, fig.height=6, fig.width=12}
+ts1 <- read_commit_ts(path(commits_dir, 'ALTUN69_PHP-Fusion.csv'))
+ts2 <- read_commit_ts(path(commits_dir, 'AndreasSummer_Rubberduck.csv'))
+mts1 <- merge_commit_ts(ts1, ts2)
+plot_multiple_ts(mts1)
+```
+
+```{r, echo=FALSE, fig.height=6, fig.width=12}
+ts1 <- read_commit_ts(path(commits_dir, 'ALTUN69_PHP-Fusion.csv'))
+ts2 <- read_commit_ts(path(commits_dir, 'AndreasSummer_Rubberduck.csv'))
+ts3 <- read_commit_ts(path(commits_dir, '01000101_cloudify-manager.csv'))
+mts2 <- merge_commit_ts(mts1, ts3)
+plot_multiple_ts(mts2)
+```

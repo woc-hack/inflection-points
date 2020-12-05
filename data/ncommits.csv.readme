@@ -1,0 +1,2 @@
+cd commits
+wc -l * | sort -n | sed 's/^[[:blank:]]*//' | tr ' ' ',' | sed ''
