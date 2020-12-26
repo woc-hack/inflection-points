@@ -52,7 +52,7 @@ Studying inflection points in open source software evolution.
   * [X] (Noah) Check-in time series scripts and instructions to use.
   * [ ] (Kuljit) Check-in project sample script and/or instructions.
   * [ ] (Noah) Investigate why we could not obtain time series for all projects.
-  * [ ] (Noah) Obtain number of unique authors/month time series for sample.
+  * [X] (Noah) Obtain number of unique authors/month time series for sample.
   * [ ] (Kuljit) Obtain files changed/month time series for sample.
   * [ ] (James) Visualize changepoints for sample of projects.
   * [ ] (James) Tune changepoint detection.
@@ -60,7 +60,7 @@ Studying inflection points in open source software evolution.
   * [ ] (James) Check-in changepoint data and visualizations.
   * [ ] (James) Compute changepoint data for unique authors time series.
   * [ ] (James) Compute changepoint data for changed files time series.
-  * [ ] (All) Prepare for hackathon final presentation on Dec 5.
+  * [X] (All) Prepare for hackathon final presentation on Dec 5.
   * [ ] (All) Write hackathon 2-page paper by Jan 19.
 
 ## MSR 2021 World of Code Hackathon Schedule
