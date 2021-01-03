@@ -17,10 +17,10 @@ firstline = sys.stdin.readline()
 print(firstline[:-1])
 
 for line in sys.stdin.readlines():
-	fields = line.split(',')
+    fields = line.split(',')
 
-	if fields[6] != "":
-		print(fields[6])
-	
-	else:
-		print(fields[4])
+    if fields[6] != "":
+        print(fields[6])
+
+    else:
+        print(fields[4])

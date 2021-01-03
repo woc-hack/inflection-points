@@ -16,19 +16,15 @@ firstline = sys.stdin.readline()
 print(firstline[:-1])
 
 for line in sys.stdin.readlines():
-	fields = line.split(',')
+    fields = line.split(',')
 
-	# all projects pass these two tests
-	#if fields[6] == "" and fields[4] == "":
-	#	print(f'No project name: {line[:-1]}', file=sys.stderr)
-	#
-	#if int(fields[5]) == 0:
-	#	print(f'Starting time at 0: {line[:-1]}', file=sys.stderr)
-	
-	if int(fields[3]) - int(fields[5]) > 126144000:
-		#print(f'Lifespan <4yrs: {line[:-1]}', file=sys.stderr)
-		print(line[:-1])
+    # all projects pass these two tests
+    # if fields[6] == "" and fields[4] == "":
+    #	print(f'No project name: {line[:-1]}', file=sys.stderr)
+    #
+    # if int(fields[5]) == 0:
+    #	print(f'Starting time at 0: {line[:-1]}', file=sys.stderr)
 
-
-	
-
+    if int(fields[3]) - int(fields[5]) > 126144000:
+        #print(f'Lifespan <4yrs: {line[:-1]}', file=sys.stderr)
+        print(line[:-1])

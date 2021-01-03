@@ -18,18 +18,18 @@ import collections
 import sys
 
 if len(sys.argv) < 2:
-	print(__doc__)
-	sys.exit()
+    print(__doc__)
+    sys.exit()
 
 p = Time_project_info()
 rows = p.project_timeline(['time'], sys.argv[1])
 
 alldates = []
 for row in rows:
-	# print(row[0])
-	d = datetime.datetime.fromtimestamp(float(row[0]))
-	alldates.append('{0}-{1}'.format(d.year, d.month))
+    # print(row[0])
+    d = datetime.datetime.fromtimestamp(float(row[0]))
+    alldates.append('{0}-{1}'.format(d.year, d.month))
 
 for key, val in sorted(collections.Counter(alldates).items()):
-	# print(key, value)
-	print('{:8} {}'.format(key + ',', val))
+    # print(key, value)
+    print('{:8} {}'.format(key + ',', val))
