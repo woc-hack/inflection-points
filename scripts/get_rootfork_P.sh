@@ -12,7 +12,7 @@ fi
 
 # Search mongo for rootfork
 out=$(mongoexport --quiet --host "da1.eecs.utk.edu" --db WoC --collection \
-'proj_metadata.S' --query "{projectID: "\""$c"\""}" -f 'rootFork' --type=csv \
+'proj_metadata.S' --query "{projectID: "\""$1"\""}" -f 'rootFork' --type=csv \
 --noHeaderLine)
 
 # Print rootfork or provided project name if mongo returned nothing (means it's root)
