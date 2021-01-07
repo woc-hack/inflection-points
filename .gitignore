@@ -1,6 +1,7 @@
 # My temporary directories
 refs/
 repos/
+util/
 
 # Editor temp files
 *~
