@@ -15,4 +15,5 @@ if len(sys.argv) < 3:
 day1 = datetime.datetime.fromtimestamp(int(sys.argv[1]))
 day2 = datetime.datetime.fromtimestamp(int(sys.argv[2]))
 delta = day2-day1
-print('Difference in days: ' + str(delta.days))
+print('Difference: ' + str(delta))
+#print(f'Difference: {datetime.timedelta.fromtimestamp(abs(int(sys.argv[1]) - int(sys.argv[2]))).strftime("%Y-%m-%d")}')

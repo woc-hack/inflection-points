@@ -32,3 +32,5 @@ We first take a sample of projects from the version R WoC dataset, then obtain a
     modified in a project. This script is kept as a reference for use of
     __[oscar.py](https://github.com/ssc-oscar/oscar.py)__'s Clickhouse
     utilities.
+    
+While developing these scripts, WoC transitioned from version R to S. For this reason, many scripts are suffixed with 'R' or 'S' to indicate which version of data it is compatible with. Most scripts are backwards compatible, but two versions exist for the sake of clarity. 
