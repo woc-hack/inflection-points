@@ -2,6 +2,8 @@
 
 Studying inflection points in open source software evolution.
 
+Note: Name changed for MSR21 paper and any future works to __Changepoints__ to better reflect the goal of our research.
+
 ## Team Members
 
   * Noah Burgin (noah22)
@@ -33,7 +35,7 @@ Studying inflection points in open source software evolution.
       * change in team culture e.g. from hostile to more inclusive (may be through sentiment analysis) or vice-versa
 
 ## Data
-  * Sample of projects from WoC R dataset that have
+  * Sample of projects from WoC R and S dataset that have
       * 50 authors
       * 5000 commits
       * Age 48 months or more
@@ -50,10 +52,10 @@ Studying inflection points in open source software evolution.
   * [X] (James) Compute changepoint data for commit time series.
   * [X] (James) Check-in changepoint script.
   * [X] (Noah) Check-in time series scripts and instructions to use.
-  * [ ] (Kuljit) Check-in project sample script and/or instructions.
+  * [X] (Kuljit) Check-in project sample script and/or instructions.
   * [X] (Noah) Investigate why we could not obtain time series for all projects.
   * [X] (Noah) Obtain number of unique authors/month time series for sample.
-  * [ ] (Kuljit) Obtain files changed/month time series for sample.
+  * [ ] (Kuljit, Noah) Obtain files changed/month time series for sample.
   * [ ] (James) Visualize changepoints for sample of projects.
   * [ ] (James) Tune changepoint detection.
   * [ ] (James) Run tuned changepoint detection on commits time series.
