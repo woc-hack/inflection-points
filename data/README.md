@@ -34,4 +34,4 @@ With the absence of the *rootfork* field in version R, project names can be extr
 
 - [projects\_**R**\_with_50authors_5000commits.csv](projects_R_with_50authors_5000commits.csv): `mongoexport` output **excluding** invalid projects
   - Source: `./scripts/filter_projects-R.sh /da1_data/play/inflection-points/mongo-exports/mongo_proj_metadata_R_out.csv`
-  - See [projects_R_data_cleaning.txt](projects_R_data_cleaning.txt) for more info
+  - See [data_cleaning_notes-R.md](data_cleaning_notes-R.md) for more info
