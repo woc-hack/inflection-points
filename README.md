@@ -5,7 +5,7 @@ Studying inflection points in open source software evolution.
 ## Team Members
 
   * Noah Burgin (noah22)
-  * Kuljit Chahal (kcc-al)
+  * Kuljit Chahal (kkc-al)
   * James Walden (jwalden)
 
 ## Research Questions
@@ -50,7 +50,7 @@ Studying inflection points in open source software evolution.
   * [X] (James) Compute changepoint data for commit time series.
   * [X] (James) Check-in changepoint script.
   * [X] (Noah) Check-in time series scripts and instructions to use.
-  * [ ] (Kuljit) Check-in project sample script and/or instructions.
+  * [X] (Kuljit) Check-in project sample script and/or instructions.
   * [X] (Noah) Investigate why we could not obtain time series for all projects.
   * [X] (Noah) Obtain number of unique authors/month time series for sample.
   * [ ] (Kuljit) Obtain files changed/month time series for sample.
