@@ -7,7 +7,7 @@ Note: Name changed for MSR21 paper and any future works to __Changepoints__ to b
 ## Team Members
 
   * Noah Burgin (noah22)
-  * Kuljit Chahal (kcc-al)
+  * Kuljit Chahal (kkc-al)
   * James Walden (jwalden)
 
 ## Research Questions
