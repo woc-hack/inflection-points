@@ -45,8 +45,6 @@ While developing these scripts, WoC transitioned from version R to S. For this r
 
 - [get_project_names.py](get_project_names.py): Get project name from mongoexport file. Root projects have an empty *rootfork* field, so we must use the 'projectID' field.
 
-- [data_to_filesch-da4.sh](data_to_filesch-da4.sh): Produce files changed per commit data using *[files_ch-single_project.py](files_ch-single_project.py)* which must be located in the [**oscar.py**](https://github.com/ssc-oscar/oscar.py) repo directory. This script assumes that path is *~/oscar.py/files_ch-single_project.py* and therefore can be run from any directory. Also, because *oscar.py* is only availble on da4, this script must only be run on **da4**.
-
-- [data_to_filesch-da0.sh](data_to_filesch-da0.sh): Produces the same output as [data_to_filesch-da4.sh](data_to_filesch-da4.sh) by using `getValue` lookups instead of *oscar.py*. For best results, run only on **da0**.
+- [data_to_filesch.sh](data_to_filesch.sh): Produce files changed per commit data using *[filesch.py](filesch.py)* which must be located in the [**oscar.py**](https://github.com/ssc-oscar/oscar.py) repo directory. This script assumes that path is *~/oscar.py/filesch.py* and therefore can be run from any directory. Also, because *oscar.py* is only availble on da4, this script must only be run on **da4**.
 
 Additional information can be found on each Python script in its docstring.
