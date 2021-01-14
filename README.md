@@ -55,7 +55,7 @@ Note: Name changed for MSR21 paper and any future works to __Changepoints__ to b
   * [X] (Kuljit) Check-in project sample script and/or instructions.
   * [X] (Noah) Investigate why we could not obtain time series for all projects.
   * [X] (Noah) Obtain number of unique authors/month time series for sample.
-  * [ ] (Kuljit, Noah) Obtain files changed/month time series for sample.
+  * [X] (Kuljit, Noah) Obtain files changed/month time series for sample.
   * [ ] (James) Visualize changepoints for sample of projects.
   * [ ] (James) Tune changepoint detection.
   * [ ] (James) Run tuned changepoint detection on commits time series.
