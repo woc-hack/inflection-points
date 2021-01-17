@@ -16,12 +16,13 @@ WoC time series data was created on the `da` servers and a copy remains there. T
 
 ## Time Series and Changepoints
 
-The files from the **auth-and-comm_data_S** directory on World of Code can be found in the `commits` folder in two folders. The first folder contains data files that contain data, while the second folder contains files with no data.
+The files from the **auth-and-comm_data_S** directory on World of Code can be found in the `commits/S` folder in three folders. The first folder contains data files that contain data, the second folder contains files with no data, and the third folder contains files with less than 48 months of data.
 
 - **auth-and-comm_data_S**: Time series data for number of commits per month (nCommits) and number of unique authors per month (nAuthors).
 - **auth-and-comm_data_zero_S**: Time series data files that are either zero size or that contain a header line but no data. These two problems are caused by different errors in data collection. Files were moved into this directory with the following two commands, with the first command for zero size and the second for header only files.
-      * `find . -size 0 -exec mv {} ../auth-and-comm_data_zero_S/ \;`
-      * `wc -l * | awk '/ 1 / { print $2 }' | xargs mv -t ../auth-and-comm_data_zero_S/`
+      * `find . -size 0 -exec mv {} ../authors-and-commits-zero \;`
+      * `wc -l * | awk '/ 1 / { print $2 }' | xargs mv -t ../authors-and-commits-zero`
+      * `wc -l * | awk '$1 < 48 { print $2 }' | xargs mv -t ../authors-and-commits-small`
 
 ## Version S
 
