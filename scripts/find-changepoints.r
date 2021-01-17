@@ -17,6 +17,7 @@ suppressPackageStartupMessages(library(changepoint.np))
 # missing rows, where no commits had been made.
 #-------------------------------------------------------------------------- 
 read_commit_ts <- function(path) {
+    proj_colnames <- c('year_month','ncommits','nauthors','timestamp')
     commits_ts <- read_csv(file=path, col_names=proj_colnames, col_types='ciii', skip=1)
     commits_ts <- commits_ts %>%
         mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
