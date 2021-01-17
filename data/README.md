@@ -2,11 +2,11 @@
 
 Data output from scripts and details on da server data.
 
-## Data for Changepoint Analysis
+## Time Series Data on the World of Code Servers
 
-WoC timeseries data is kept on the da servers due to its size. They can be found with `ls /da?_data/play/inflection[-_]points` (spread across several da servers). Regardless of server location, data is grouped by directory name as defined below:
+WoC time series data was created on the `da` servers and a copy remains there. The data files can be found with `ls /da?_data/play/inflection[-_]points` (spread across several `da` servers). Regardless of server location, data is grouped by directory name as defined below:
 
--  **auth-and-comm_data_[RS]**: Timeseries data for number of commits per month (nCommits) and number of unique authors per month (nAuthors).
+- **auth-and-comm_data_[RS]**: Time series data for number of commits per month (nCommits) and number of unique authors per month (nAuthors).
     - Source: [data_to_timeseries.sh](../scripts/data_to_timeseries.sh) 
 - **P2c_auth-and-comm_data_S**: Same as *auth-and-comm_data_[RS]*, but commits are retrieved using `P2c` rather than `p2c`. This single character change yields a drastically different output. Instead of retrieving the commits associated with a single project (`p2c`), `P2c` retrieves ALL commits associated with the project's cluster (clusters determined by WoC algorithms). 
   - Source: [data_to_timeseries_P2c.sh](../scripts/data_to_timeseries_P2c.sh)
@@ -14,10 +14,19 @@ WoC timeseries data is kept on the da servers due to its size. They can be found
   - Source: data_to_filesch* – Both `getValues` and __[oscar.py](https://github.com/ssc-oscar/oscar.py)__ were utilized in this data collection process. See the [scripts README](../scripts/README.md) for details on each script.
 - **mongo-exports**: Untouched output of `mongoexport` queries from R and S (Includes projects with lifespan < 4 yrs).
 
+## Time Series and Changepoints
+
+The files from the **auth-and-comm_data_S** directory on World of Code can be found in the `commits` folder in two folders. The first folder contains data files that contain data, while the second folder contains files with no data.
+
+- **auth-and-comm_data_S**: Time series data for number of commits per month (nCommits) and number of unique authors per month (nAuthors).
+- **auth-and-comm_data_zero_S**: Time series data files that are either zero size or that contain a header line but no data. These two problems are caused by different errors in data collection. Files were moved into this directory with the following two commands, with the first command for zero size and the second for header only files.
+      * `find . -size 0 -exec mv {} ../auth-and-comm_data_zero_S/ \;`
+      * `wc -l * | awk '/ 1 / { print $2 }' | xargs mv -t ../auth-and-comm_data_zero_S/`
+
 ## Version S
 
 - [project_names_S.txt](project_names_S.txt): Valid projects from S
-  - Source:  `cat /da1_data/play/noah22/mongo-exports/mongo_proj_metadata_S_out.csv  | python3.9 scripts/filter_projects.py | python3.9 scripts/get_project_names.py`
+  - Source: `cat /da1_data/play/noah22/mongo-exports/mongo_proj_metadata_S_out.csv  | python3.9 scripts/filter_projects.py | python3.9 scripts/get_project_names.py`
   - Excludes projects with a lifespan < 4 yrs
 - [P_names](P_names): Central repository for each project
   - Source: `cat project_names_S.txt | ~/lookup/getValues -f p2P`
