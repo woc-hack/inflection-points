@@ -18,17 +18,17 @@ library(tidyverse)
 
 # Pick a random sample of projects
 
-We create a dataset of 10 randomly chosen projects from the version S dataset from World of Code. The samples are stored in a list of tibbles named `sample_projects`.
+We create a dataset of 9 randomly chosen projects from the version S dataset from World of Code. The samples are stored in a list of tibbles named `sample_projects`. I later created a single tibble with all sample projects called `samples_tibble`, which has a column `project` containing the project names.
 
 ```{r random_sample_params}
-nprojects <- 10
 set.seed(1)
+nprojects <- 100
+proj_colnames <- c('year_month','ncommits','nauthors','timestamp')
 ```
 
 ```{r read_commit_ts_fn}
 read_commit_ts <- function(path) {
-    colnames <- c('year_month','ncommits','nauthors','timestamp')
-    commits_ts <- read_csv(file=path, col_names=colnames, col_types='ciii', skip=1)
+    commits_ts <- read_csv(file=path, col_names=proj_colnames, col_types='ciii', skip=1)
     commits_ts <- commits_ts %>%
         mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
         complete(date=seq.Date(min(date), max(date), by="month"), fill=list(ncommits=0, nauthors=0)) %>%
@@ -38,11 +38,63 @@ read_commit_ts <- function(path) {
 ```
 
 ```{r random_sample}
-indir <- '../data/commits/auth-and-comm_data_S'
+indir <- '../data/commits/S/authors-and-commits'
 in_paths <- dir_ls(indir, glob='*.csv')
 sample_paths <- sample(in_paths, nprojects)
-sample_projects <- lapply(sample_paths, read_commit_ts)
+#sample_projects <- lapply(sample_paths, read_commit_ts)
+
+samples_tibble <- NULL
+for (path in sample_paths) {
+    proj_name <- path_ext_remove(path_file(path))
+    sample_df <- read_commit_ts(path) %>% add_column(project = proj_name)
+    if(nrow(sample_df) >= 48) {
+        samples_tibble <- bind_rows(samples_tibble, sample_df)
+    }
+}
+sample_projects <- samples_tibble %>% group_by(project) %>% group_split()
+sample_names <- samples_tibble %>% select(project) %>% unique() %>% pull()
 s1 <- sample_projects[[1]]
+```
+
+## Project Time Series
+
+Let's graph the first 9 project commit time series in the sample. It's difficult to read the plot with 10 colored lines, so I faceted the plots. We see the sample contains a variety of projects, some short lived, others long lived, with a wide range of variances.
+```{r, echo=FALSE, fig.height=8, fig.width=10}
+#samples_plot <- ggplot(samples_tibble, aes(x=date, y=ncommits, color=project, group=project)) + 
+#  geom_point() + geom_line() + xlab("Month") + ylab("Number of Commits")
+samples_plot <- ggplot(bind_rows(sample_projects[1:9]), aes(x=date, y=ncommits)) + 
+    geom_point() + geom_line() + facet_wrap(~project)
+samples_plot
+```
+## Project Lifespans
+
+We can see that project lifetimes range from the minimum of 48 months to 567 (47.25 years).
+```{r}
+samples_span <- samples_tibble %>% group_by(project) %>% summarize(nmonths = n(), .groups='drop')
+samples_span %>% arrange(desc(nmonths))
+```
+The mean lifespan in the sample is 123.9 months (10.325 years)
+```{r}
+summary(samples_span)
+```
+```{r fig.height=2, fig.width=8}
+ggplot(samples_span, aes(x=nmonths, y=1)) + geom_boxplot()
+```
+
+## Project Activity (commits and authors)
+
+```{r}
+samples_activity <- samples_tibble %>% group_by(project) %>% 
+  summarize(commits=sum(ncommits), authors=sum(nauthors), .groups='drop')
+samples_activity
+```
+We find the total number of commits ranges from 1225 to 374,616, with a mean of 18,176. Note that the authors column does not contain the total number of authors--it is the sum of the unique authors per month, which multiply counts authors that contribute in more than one month.
+```{r}
+summary(samples_activity)
+```
+
+```{r fig.height=2, fig.width=8}
+ggplot(samples_activity, aes(x=commits, y=1)) + geom_boxplot()
 ```
 
 # Examining the first project in detail
@@ -157,49 +209,113 @@ plot(s1a.cpt.np)
 
 Choosing the best penalty value to find the correct number of changepoints is difficult. We have been using default penalties so far. The CROPS (Changepoints for a Range of Penalties) algorithm lets you specify minimum and maximum penalty values. It returns optimal segmentations for any penalty between these values.
 
+We pick a project with a long time series for this problem.
+```{r}
+longproj <- sample_projects[[7]]
+```
+
+
 ## First Sample: Number of Commits
 
-We find optimal segmentations for 1-3, 5-6, and 8 changepoints.
+Note that we do not find optimal segmentations for each value of changepoints. For example, there is no list of 3 or 5 changepoints in the CROPS matrix below.
 ```{r}
-s1.commits.crops <- cpt.var(s1$ncommits, method="PELT", penalty="CROPS", pen.value=c(5,500))
-cpts.full(s1.commits.crops)
+longproj.commits.crops <- cpt.var(longproj$ncommits, method="PELT", penalty="CROPS", pen.value=c(5,500))
+cpts.full(longproj.commits.crops)
 ```
 
 Changepoint provides a diagnostic elbow plot for CROPS, showing how many changepoints for each penalty. The intuition is that if a true changepoint is added to the model, there will be a large improvement in the test statistic. False changepoints will not improve the fit much. Therefore, you look for an elbow in the plotted curve.
 
-For the commits time series, it looks like the optimal number of changepoints is 2.
+For the commits time series, it looks like the true number of changepoints may be 2, 4, or 7, depending how far down the elbow of the curve we want to go.
 ```{r}
-plot(s1.commits.crops, diagnostic=TRUE)
+plot(longproj.commits.crops, diagnostic=TRUE)
 ```
 
 ```{r}
-plot(s1.commits.crops, ncpts=2)
+plot(longproj.commits.crops, ncpts=2)
+```
+
+```{r}
+plot(longproj.commits.crops, ncpts=7)
 ```
 Let's look at the range of penalty values that introduce new changepoints.
 ```{r}
-pen.value.full(s1.commits.crops)
+pen.value.full(longproj.commits.crops)
 ```
 
 ## First Sample: Number of Authors
 
 We use CROPS to find the appropriate number of changepoints for the authors time series for the same project.
 
-CROPS finds optimal segmentations for 2 and 4 changepoints.
+CROPS finds optimal segmentations for 1 or 2 changepoints.
 ```{r}
-s1.authors.crops <- cpt.var(s1$nauthors, method="PELT", penalty="CROPS", pen.value=c(5,500))
-cpts.full(s1.authors.crops)
+longproj.authors.crops <- cpt.var(longproj$nauthors, method="PELT", penalty="CROPS", pen.value=c(5,500))
+cpts.full(longproj.authors.crops)
 ```
 
-The curve shows substantial improvement as changepoints are added, so it appears that the best number of changepoints is 4.
+The curve has a clear elbow at 2 changepoints.
 ```{r}
-plot(s1.authors.crops, diagnostic=TRUE)
+plot(longproj.authors.crops, diagnostic=TRUE)
 ```
 
 ```{r}
-plot(s1.authors.crops, ncpts=4)
+plot(longproj.authors.crops, ncpts=2)
 ```
 
 Let's look at the range of penalty values that introduce new changepoints.
 ```{r}
-pen.value.full(s1.authors.crops)
+pen.value.full(longproj.authors.crops)
 ```
+
+# Examining Changepoints for the Sample
+
+We count the number of changepoints found for each project using 3 algorithms: binary segmentation (BinSeg), PELT, and nonparameteric PELT. Nonparameteric PELT finds the smallest number of changepoints, while PELT finds the most changeponts, which is near the number of possible changepoints (given in column 'maxcpts').
+
+The BinSeg algorithm finds as many changepoints as the maximum number allowed (Q). Q cannot be larger than the number of data points in the shortest time series. We set the minimum segment length to 3, as we're not just looking for anomalous months. We want to find places where a change took hold for a noticeable amount of time.
+
+```{r}
+minsegment <- 3
+sample_changepoints <- tibble(name=character(), lifespan=integer(), ncommits=integer(), maxcpts=integer(),
+                  binseg=integer(), pelt=integer(), np=integer())
+for(i in seq_along(sample_projects[1:100])) {
+  project_name <- sample_names[i]
+  project_df <- sample_projects[[i]]
+  commits <- select(project_df, 'ncommits') %>% pull()
+  pelt_cptmean <- cpt.mean(commits, method="PELT", minseglen=minsegment)
+  binseg_cptmean <- suppressWarnings(cpt.mean(commits, method="BinSeg", Q=20, minseglen=minsegment))
+  np_cptmean <- cpt.np(commits, method="PELT", minseglen=minsegment)
+  sample_changepoints <- sample_changepoints %>% 
+    add_row(name=project_name, 
+            lifespan=length(commits),
+            ncommits=as.integer(sum(commits)),
+            maxcpts=as.integer(lifespan/minsegment),
+            binseg=ncpts(binseg_cptmean), 
+            pelt=ncpts(pelt_cptmean), 
+            np=ncpts(np_cptmean))
+}
+sample_changepoints %>% select(-name, -ncommits)
+```
+
+Looking at the summary, we find that nonparametric PELT finds 3.66 changepoints on average compared to 28.72 for parametric PELT and 17.4 for binary segmentation. There is no series with zero changepoints, as the minimum number of changepoints comes from nonparameteric and it's 1.
+```{r}
+summary(sample_changepoints)
+```
+
+Let's examine the first 9 time series changepoints visually using the nonparametric approach.
+```{r}
+for(i in 1:9) {
+  project_df <- sample_projects[[i]]
+  commits <- select(project_df, 'ncommits') %>% pull()
+  np_cptmean <- cpt.np(commits, method="PELT", minseglen=minsegment)
+  print(plot(np_cptmean))
+}
+```
+Let's examine the first 9 time series changepoints visually using the parametric approach.
+```{r}
+for(i in 1:9) {
+  project_df <- sample_projects[[i]]
+  commits <- select(project_df, 'ncommits') %>% pull()
+  np_cptmean <- cpt.mean(commits, method="PELT", minseglen=minsegment)
+  print(plot(np_cptmean))
+}
+```
+Comparing the two sets of plots, it's clear that the nonparametric approach divides the time series into areas of similar activity, while the parametric approach identifies too many small changes as changepoints. Given that software engineering data is rarely normal, it's unsurprising that the parametric approach, which depends on normal data, does not work as well as the nonparametric approach.
