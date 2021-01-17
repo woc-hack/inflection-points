@@ -1,0 +1,205 @@
+---
+title: "Changepoint Detection for Random Sample of WoC S Time Series"
+author: "James Walden"
+date: "1/13/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(changepoint)
+library(changepoint.np)
+library(fs)
+library(lubridate)
+library(tidyverse)
+```
+
+# Pick a random sample of projects
+
+We create a dataset of 10 randomly chosen projects from the version S dataset from World of Code. The samples are stored in a list of tibbles named `sample_projects`.
+
+```{r random_sample_params}
+nprojects <- 10
+set.seed(1)
+```
+
+```{r read_commit_ts_fn}
+read_commit_ts <- function(path) {
+    colnames <- c('year_month','ncommits','nauthors','timestamp')
+    commits_ts <- read_csv(file=path, col_names=colnames, col_types='ciii', skip=1)
+    commits_ts <- commits_ts %>%
+        mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
+        complete(date=seq.Date(min(date), max(date), by="month"), fill=list(ncommits=0, nauthors=0)) %>%
+        mutate(year_month=str_c(year(date),str_pad(month(date),2,"left","0"),sep='-'))
+    commits_ts
+}
+```
+
+```{r random_sample}
+indir <- '../data/commits/auth-and-comm_data_S'
+in_paths <- dir_ls(indir, glob='*.csv')
+sample_paths <- sample(in_paths, nprojects)
+sample_projects <- lapply(sample_paths, read_commit_ts)
+s1 <- sample_projects[[1]]
+```
+
+# Examining the first project in detail
+
+We look at changepoints in multiple time series for the first project, including number of commits and number of unique authors per month.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+g <- ggplot(s1, aes(x=date, y=ncommits)) + geom_point() + geom_line(group=1) + xlab("Month") + ylab("Number of Commits")
+g
+```
+
+## Number of Commits: AMOC
+
+We find a changepoint for the number of commits time series using the defaults in R changepoint, which uses the AMOC (At Most One Changepoint) algorithm.
+```{r}
+s1c.cpt <- cpt.mean(s1$ncommits)
+s1c.pts <- cpts(s1c.cpt)
+s1c.pts
+```
+
+```{r}
+plot(s1c.cpt)
+```
+
+```{r}
+s1c.date <- s1 %>% slice(s1c.pts) %>% select(date) %>% pull()
+s1 %>% slice(s1c.pts)
+```
+
+```{r}
+g + geom_vline(xintercept=s1c.date, color="blue", linetype="dashed") + 
+    ggtitle("Changepoints in sample 1 commits time series")
+```
+
+## Number of Commits: Binary Segmentation
+
+In this section, we use the binary segmentation algorithm, which can find multiple changepoints in a time series.
+```{r}
+s1c.binseg.cpt <- cpt.mean(s1$ncommits, method="BinSeg")
+s1c.binseg.pts <- cpts(s1c.binseg.cpt)
+s1c.binseg.pts
+```
+
+```{r}
+plot(s1c.binseg.cpt)
+```
+
+```{r}
+s1c.binseg.date <- s1 %>% slice(s1c.binseg.pts) %>% select(date) %>% pull()
+s1 %>% slice(s1c.binseg.pts)
+```
+
+```{r}
+g + geom_vline(xintercept=s1c.binseg.date, color="blue", linetype="dashed") + 
+    ggtitle("Changepoints in sample 1 commits time series")
+```
+
+## Number of Commits: Nonparametric
+
+We next use the nonparametric variant `changepoint.np` which finds 7 changepoints instead of one.
+```{r}
+s1c.cpt.np <- cpt.np(s1$ncommits)
+s1commits.np <- cpts(s1c.cpt.np)
+s1commits.np
+```
+
+```{r}
+plot(s1c.cpt.np)
+```
+
+## Number of Authors
+
+Now we look at the time series for number of unique authors who contributed each month.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+g <- ggplot(s1, aes(x=date, y=nauthors)) + geom_point() + geom_line(group=1) + xlab("Month") + ylab("Number of Authors")
+g
+```
+
+We find one changepoint for number of commits using the defaults in R changepoint.
+```{r}
+s1c.cpt <- cpt.mean(s1$ncommits)
+s1authors <- cpts(s1c.cpt)
+s1authors
+```
+```{r}
+plot(s1c.cpt)
+```
+
+```{r}
+s1c.date <- s1 %>% slice(s1authors) %>% select(date) %>% pull()
+s1 %>% slice(s1authors)
+```
+
+```{r}
+g + geom_vline(xintercept=s1c.date, color="blue", linetype="dashed") + 
+    ggtitle("Changepoints in sample 1 authors time series")
+```
+
+We next use the nonparametric variant `changepoint.np` which finds 5 changepoints instead of one.
+```{r}
+s1a.cpt.np <- cpt.np(s1$ncommits)
+s1authors.np <- cpts(s1a.cpt.np)
+s1authors.np
+```
+
+```{r}
+plot(s1a.cpt.np)
+```
+
+# Finding the Number of Changepoints with CROPS
+
+Choosing the best penalty value to find the correct number of changepoints is difficult. We have been using default penalties so far. The CROPS (Changepoints for a Range of Penalties) algorithm lets you specify minimum and maximum penalty values. It returns optimal segmentations for any penalty between these values.
+
+## First Sample: Number of Commits
+
+We find optimal segmentations for 1-3, 5-6, and 8 changepoints.
+```{r}
+s1.commits.crops <- cpt.var(s1$ncommits, method="PELT", penalty="CROPS", pen.value=c(5,500))
+cpts.full(s1.commits.crops)
+```
+
+Changepoint provides a diagnostic elbow plot for CROPS, showing how many changepoints for each penalty. The intuition is that if a true changepoint is added to the model, there will be a large improvement in the test statistic. False changepoints will not improve the fit much. Therefore, you look for an elbow in the plotted curve.
+
+For the commits time series, it looks like the optimal number of changepoints is 2.
+```{r}
+plot(s1.commits.crops, diagnostic=TRUE)
+```
+
+```{r}
+plot(s1.commits.crops, ncpts=2)
+```
+Let's look at the range of penalty values that introduce new changepoints.
+```{r}
+pen.value.full(s1.commits.crops)
+```
+
+## First Sample: Number of Authors
+
+We use CROPS to find the appropriate number of changepoints for the authors time series for the same project.
+
+CROPS finds optimal segmentations for 2 and 4 changepoints.
+```{r}
+s1.authors.crops <- cpt.var(s1$nauthors, method="PELT", penalty="CROPS", pen.value=c(5,500))
+cpts.full(s1.authors.crops)
+```
+
+The curve shows substantial improvement as changepoints are added, so it appears that the best number of changepoints is 4.
+```{r}
+plot(s1.authors.crops, diagnostic=TRUE)
+```
+
+```{r}
+plot(s1.authors.crops, ncpts=4)
+```
+
+Let's look at the range of penalty values that introduce new changepoints.
+```{r}
+pen.value.full(s1.authors.crops)
+```
