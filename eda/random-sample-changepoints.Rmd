@@ -18,7 +18,7 @@ library(tidyverse)
 
 # Pick a random sample of projects
 
-We create a dataset of 9 randomly chosen projects from the version S dataset from World of Code. The samples are stored in a list of tibbles named `sample_projects`. I later created a single tibble with all sample projects called `samples_tibble`, which has a column `project` containing the project names.
+We create a dataset of 100 randomly chosen projects from the version S dataset from World of Code. The samples are stored in two formats: a single tibble with all projects, `samples_tibble`, and a list of project tibbles, `sample_projects`.
 
 ```{r random_sample_params}
 set.seed(1)
