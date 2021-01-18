@@ -1,0 +1,140 @@
+---
+title: "Changepoint Detection for MSR 2021 paper"
+author: "James Walden"
+date: "1/16/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(changepoint.np)
+library(fs)
+library(lubridate)
+library(tidyverse)
+```
+
+# Load project data
+
+There are almost 10,000 CSV files, so reading in the projects data frame takes a few minutes. We select projects that have at least 48 months of data between 1970 and 2020.
+
+```{r read_commit_ts_fn}
+read_commit_ts <- function(path) {
+    proj_colnames <- c('year_month','ncommits','nauthors','timestamp')
+    commits_ts <- read_csv(file=path, col_names=proj_colnames, col_types='ciid', skip=1)
+    commits_ts <- commits_ts %>%
+        mutate(date=as_date(str_c(year_month, '-01')), timestamp=NULL) %>%
+        complete(date=seq.Date(min(date), max(date), by="month"), fill=list(ncommits=0, nauthors=0)) %>%
+        mutate(year_month=str_c(year(date),str_pad(month(date),2,"left","0"),sep='-'))
+    commits_ts
+}
+```
+
+```{r read_data}
+indir <- '../data/commits/S/authors-and-commits'
+in_paths <- dir_ls(indir, glob='*.csv')
+
+projects <- NULL
+for (path in in_paths) {
+    proj_name <- path_ext_remove(path_file(path))
+    sample_df <- read_commit_ts(path) %>% add_column(project = proj_name)
+
+    if(nrow(sample_df) >= 48) {
+        sdate <- sample_df$date
+        if(all(sdate > as.Date('1969-12-01') & sdate < as.Date('2021-01-01'))) {
+            projects <- bind_rows(projects, sample_df)
+        }
+    }
+}
+```
+
+```{r project_list_data}
+project_names <- projects %>% select(project) %>% unique() %>% pull()
+project_list <- projects %>% group_by(project) %>% group_split()
+```
+
+## Project Lifespans
+
+We can see that project lifetimes range from the minimum of 48 months to 608 months (> 50 years).
+```{r}
+samples_span <- projects %>% group_by(project) %>% summarize(nmonths = n(), .groups='drop')
+samples_span %>% arrange(desc(nmonths))
+```
+
+The mean lifespan in the sample is about 10 years at 118.4 months.
+```{r}
+summary(samples_span)
+```
+
+The boxplot shows that while the middle half of projects are between 73-147 months, there are many outliers with more months.
+```{r fig.height=2, fig.width=8}
+ggplot(samples_span, aes(x=nmonths, y=1)) + geom_boxplot()
+```
+
+## Project Activity (commits and authors)
+
+```{r}
+project_activity <- projects %>% group_by(project) %>% 
+  summarize(commits=sum(ncommits), authors=sum(nauthors), .groups='drop')
+project_activity
+```
+
+We find the total number of commits ranges from 63 to over 2 million, with a mean of 18,275. Note that the authors column does not contain the total number of authors--it is the sum of the unique authors per month, which multiply counts authors that contribute in more than one month.
+
+```{r}
+summary(project_activity)
+```
+
+The interquartile range is quite small, ranging between 8046 and 15,528 commits, while the number of outliers is large.
+```{r fig.height=2, fig.width=8}
+ggplot(project_activity, aes(x=commits, y=1)) + geom_boxplot()
+```
+
+# Computing Changepoints
+
+We count the number of changepoints found for each project using 3 algorithms: binary segmentation (BinSeg), PELT, and nonparameteric PELT. Nonparameteric PELT finds the smallest number of changepoints, while PELT finds the most changeponts, which is near the number of possible changepoints (given in column 'maxcpts').
+
+The BinSeg algorithm finds as many changepoints as the maximum number allowed (Q). Q cannot be larger than the number of data points in the shortest time series. We set the minimum segment length to 3, as we're not just looking for anomalous months. We want to find places where a change took hold for a noticeable amount of time.
+
+```{r}
+minsegment <- 3
+changepoints <- tibble(name=character(), 
+                       lifespan=integer(), 
+                       ncommits=integer(), 
+                       author_cpts=integer(),
+                       commit_cpts=integer()
+)
+
+for(i in seq_along(project_list)) {
+  project_name <- sample_names[i]
+  project_df <- project_list[[i]]
+  authors <- select(project_df, 'nauthors') %>% pull()
+  commits <- select(project_df, 'ncommits') %>% pull()
+  np_authors <- cpt.np(authors, method="PELT", minseglen=minsegment)
+  np_commits <- cpt.np(commits, method="PELT", minseglen=minsegment)
+  changepoints <- changepoints %>% 
+    add_row(name=project_name, 
+            lifespan=length(commits),
+            ncommits=as.integer(sum(commits)),
+            author_cpts=ncpts(np_authors),
+            commit_cpts=ncpts(np_commits)
+    )
+}
+
+changepoints
+```
+
+```{r}
+summary(changepoints)
+```
+
+Let's examine the first 9 time series changepoints visually using the nonparametric approach.
+```{r}
+for(i in 1:9) {
+  project_df <- project_list[[i]]
+  commits <- select(project_df, 'ncommits') %>% pull()
+  np_cptmean <- cpt.np(commits, method="PELT", minseglen=minsegment)
+  print(plot(np_cptmean))
+}
+```
