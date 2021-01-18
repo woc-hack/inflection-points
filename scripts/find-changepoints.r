@@ -70,11 +70,13 @@ find_changepoints <- function(commits_ts) {
                 slice(changepoints[i]:end_row) %>%
                 summarize(mean(ncommits)) %>%
                 pull()
-            changes <- changes %>% add_row(row=changepoints[i],
-            date=commits_ts %>% slice(changepoints[i]) %>% select(date) %>% pull(),
-            pre_mean=pre_change_mean,
-            post_mean=post_change_mean,
-            diff_means=post_change_mean - pre_change_mean)
+            changes <- changes %>% add_row(
+                row=changepoints[i],
+                date=commits_ts %>% slice(changepoints[i]) %>% select(date) %>% pull(),
+                pre_mean=pre_change_mean,
+                post_mean=post_change_mean,
+                diff_means=post_change_mean - pre_change_mean
+            )
         }
     }
     changes
