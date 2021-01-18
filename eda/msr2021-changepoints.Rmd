@@ -107,7 +107,7 @@ changepoints <- tibble(name=character(),
 )
 
 for(i in seq_along(project_list)) {
-  project_name <- sample_names[i]
+  project_name <- project_names[i]
   project_df <- project_list[[i]]
   authors <- select(project_df, 'nauthors') %>% pull()
   commits <- select(project_df, 'ncommits') %>% pull()
@@ -129,12 +129,139 @@ changepoints
 summary(changepoints)
 ```
 
-Let's examine the first 9 time series changepoints visually using the nonparametric approach.
+Let's examine the first 10 time series changepoints visually using the nonparametric approach.
 ```{r}
-for(i in 1:9) {
+for(i in 1:10) {
   project_df <- project_list[[i]]
   commits <- select(project_df, 'ncommits') %>% pull()
   np_cptmean <- cpt.np(commits, method="PELT", minseglen=minsegment)
   print(plot(np_cptmean))
 }
+```
+
+## Number of Changepoints Analysis
+
+Let's see how common each count of changepoints are. We find a bell curve with a long tail to the right (higher numbers of changepoints.)
+There is one project with 14 author changepoints and 6 projects with 10 changepoints, but zero projects with 11-13 changepoints.
+```{r}
+apts <- changepoints %>% select(author_cpts) %>% count(author_cpts)
+apts$author_cpts <- as.factor(apts$author_cpts)
+apts
+```
+```{r}
+aplot <- ggplot(apts, aes(x=n, y=author_cpts)) + geom_point(size=2) +
+  scale_x_continuous(breaks=seq(0,2700,200)) +
+  xlab("Number of Projects") + ylab("Number of Changepoints") +
+  ggtitle("Number of Changepoints in Active Authors")
+aplot
+```
+
+Let's look at the number of commits changepoints next.
+```{r}
+commit_cpts <- changepoints %>% select(commit_cpts) %>% count(commit_cpts)
+commit_cpts$commit_cpts <- as.factor(commit_cpts$commit_cpts)
+commit_cpts
+```
+
+```{r}
+cplot <- ggplot(commit_cpts, aes(x=n, y=commit_cpts)) + geom_point(size=2) +
+  scale_x_continuous(breaks=seq(0,2600,200)) +
+  xlab("Number of Projects") + ylab("Number of Changepoints") +
+  ggtitle("Number of Changepoints in Monthly Commits")
+cplot
+```
+
+# Analyze sign and magnitude of changepoints
+
+```{r}
+compute_changesizes <- function(column_name) {
+    minsegment <- 3
+    changesizes <- tibble(
+                    project = character(), 
+                    date = Date(), 
+                    pre_mean = double(),
+                    post_mean = double(),
+                    diff_means = double()
+                    )
+
+    for(i in seq_along(project_list)) {
+    #for(i in seq_along(plist)) {
+        project_df <- project_list[[i]]
+        data <- select(project_df, all_of(column_name)) %>% pull()
+        np_data <- cpt.np(data, method="PELT", minseglen=minsegment)
+        np_changepoints <- cpts(np_data)
+        nnp_changepoints <- ncpts(np_data)
+        if(nnp_changepoints > 0) {
+            for (i in 1:nnp_changepoints) {
+                if (i == 1) {
+                    begin_row <- 1
+                } else {
+                    begin_row <- np_changepoints[i-1]
+                }
+                if (i == nnp_changepoints) {
+                    end_row <- nrow(project_df)
+                } else {
+                    end_row <- np_changepoints[i+1]
+                }
+                pre_change_mean <- project_df %>% 
+                    slice(begin_row:np_changepoints[i]) %>%
+                    select(all_of(column_name)) %>%
+                    pull() %>%
+                    mean()
+                post_change_mean <- project_df %>% 
+                    slice(np_changepoints[i]:end_row) %>%
+                    select(all_of(column_name)) %>%
+                    pull() %>%
+                    mean()
+                changesizes <- changesizes %>% add_row(
+                    project=project_names[i],
+                    date=project_df %>% slice(np_changepoints[i]) %>% select(date) %>% pull(),
+                    pre_mean=pre_change_mean,
+                    post_mean=post_change_mean,
+                    diff_means=post_change_mean - pre_change_mean
+                )
+            }
+        }
+    }
+
+    changesizes
+}
+```
+
+## Number of Commits
+
+```{r}
+commit_changesizes <- compute_changesizes('ncommits')
+```
+
+Let's first investigate the signs of changepoints. We find slightly more negative than positive changepoints.
+```{r}
+negcpts <- commit_changesizes %>% filter(diff_means < 0) %>% count() %>% pull()
+poscpts <- commit_changesizes %>% filter(diff_means > 0) %>% count() %>% pull()
+c(negcpts, poscpts)
+```
+
+Summary shows that mean and median changes are quite small, as is the IQR, but the range of values is enormous.
+```{r}
+summary(commit_changesizes)
+```
+
+The density plot approaches a Dirac delta function with a very narrow peak and extensive tails near zero.
+```{r}
+ggplot(commit_changesizes, aes(x=diff_means)) + geom_density() + 
+  xlab("Change in means at changepoint") + ylab("Density") +
+  ggtitle("Distribution of change sizes for commit time series")
+```
+
+## Number of Authors
+
+```{r}
+author_changesizes <- compute_changesizes('nauthors')
+summary(author_changesizes)
+```
+
+```{r}
+ggplot(author_changesizes, aes(x=diff_means)) + geom_density() + 
+  xlab("Change in means at changepoint") + ylab("Density") +
+  ggtitle("Distribution of change sizes for author time series")
 ```
