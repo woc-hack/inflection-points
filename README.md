@@ -1,8 +1,6 @@
 # Inflection Points
 
-Studying inflection points in open source software evolution.
-
-Note: Name changed for MSR21 paper and any future works to __Changepoints__ to better reflect the goal of our research.
+Studying __changepoints__ in open source software evolution. The team name comes from an initial focus on inflection points, which we broadened to cover changepoints.
 
 ## Team Members
 
@@ -11,23 +9,19 @@ Note: Name changed for MSR21 paper and any future works to __Changepoints__ to b
   * James Walden (jwalden)
 
 ## Research Questions
-  * What are the types of inflection points in software evolution?
-      * X% increase in commits/month
-      * X% decrease in commits/month
-      * X% increase in unique authors/month
-      * X% decrease in unique authors/month
-      * X% increase in users
-      * X% decrease in users
-      * X% increase in truck factor
-      * X% decrease in truck factor
-      * X% increase in popularity
-      * X% decrease in popularity
-      * X% increase in activity (in terms of pull requests/forks) 
-      * X% decrease in activity (in terms of pull requests/forks)
-     
+  * How common are changepoints in software evolution?
+  * What are the signs and sizes of changepoints?
+  * What types of metrics might show changepoints?
+      * Commits/month
+      * Unique authors/month
+      * Users/month
+      * Popularity (stars, watches on github)
+      * Pull requests
+      * Issues
+      * Code metrics (SLOC, cyclomatic complexity, etc.)
   * What are the causes of inflection points in software evolution?
       * Migration to GitHub: check commit messages
-      * New releases: check for release tags near inflection point
+      * New releases: check for release tags near changepoint
       * Security events: check news or CVE database for important dates
       * Bot adoption: check commit messages
       * Users adopt fork or competing project: check forks, compare to other projects 
@@ -39,8 +33,8 @@ Note: Name changed for MSR21 paper and any future works to __Changepoints__ to b
       * 50 authors
       * 5000 commits
       * Age 48 months or more
-      * EarleistCommitDate(in unix timestamp) > 0
-  * Time series on da0 in /data/play/inflection_points/timeseries-data/
+      * Earliest commit date (unix timestamp) > 0
+  * Data files on `da0` in /data/play/inflection_points
 
 ## Tasks
 
@@ -56,12 +50,11 @@ Note: Name changed for MSR21 paper and any future works to __Changepoints__ to b
   * [X] (Noah) Investigate why we could not obtain time series for all projects.
   * [X] (Noah) Obtain number of unique authors/month time series for sample.
   * [X] (Kuljit, Noah) Obtain files changed/month time series for sample.
-  * [ ] (James) Visualize changepoints for sample of projects.
-  * [ ] (James) Tune changepoint detection.
-  * [ ] (James) Run tuned changepoint detection on commits time series.
-  * [ ] (James) Check-in changepoint data and visualizations.
-  * [ ] (James) Compute changepoint data for unique authors time series.
-  * [ ] (James) Compute changepoint data for changed files time series.
+  * [X] (James) Visualize changepoints for sample of projects.
+  * [X] (James) Tune changepoint detection.
+  * [X] (James) Run tuned changepoint detection on commits time series.
+  * [X] (James) Check-in changepoint data and visualizations.
+  * [X] (James) Compute changepoint data for unique authors time series.
   * [X] (All) Prepare for hackathon final presentation on Dec 5.
   * [ ] (All) Write hackathon 2-page paper by Jan 19.
 
