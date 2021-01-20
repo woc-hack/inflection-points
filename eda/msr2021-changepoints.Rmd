@@ -148,11 +148,12 @@ apts <- changepoints %>% select(author_cpts) %>% count(author_cpts)
 apts$author_cpts <- as.factor(apts$author_cpts)
 apts
 ```
+
 ```{r}
 aplot <- ggplot(apts, aes(x=n, y=author_cpts)) + geom_point(size=2) +
   scale_x_continuous(breaks=seq(0,2700,200)) +
-  xlab("Number of Projects") + ylab("Number of Changepoints") +
-  ggtitle("Number of Changepoints in Active Authors")
+  xlab("Number of Projects") + ylab("Number of Changepoints") #+
+ # ggtitle("Number of Changepoints in Active Authors")
 aplot
 ```
 
@@ -166,8 +167,8 @@ commit_cpts
 ```{r}
 cplot <- ggplot(commit_cpts, aes(x=n, y=commit_cpts)) + geom_point(size=2) +
   scale_x_continuous(breaks=seq(0,2600,200)) +
-  xlab("Number of Projects") + ylab("Number of Changepoints") +
-  ggtitle("Number of Changepoints in Monthly Commits")
+  xlab("Number of Projects") + ylab("Number of Changepoints")# +
+  #ggtitle("Number of Changepoints in Monthly Commits")
 cplot
 ```
 
@@ -248,9 +249,10 @@ summary(commit_changesizes)
 
 The density plot approaches a Dirac delta function with a very narrow peak and extensive tails near zero.
 ```{r}
-ggplot(commit_changesizes, aes(x=diff_means)) + geom_density() + 
-  xlab("Change in means at changepoint") + ylab("Density") +
-  ggtitle("Distribution of change sizes for commit time series")
+commit_sizes <- ggplot(commit_changesizes, aes(x=diff_means)) + geom_density() + 
+  xlab("Change in means at changepoint") + ylab("Density") #+
+  #ggtitle("Distribution of change sizes for commit time series")
+commit_sizes
 ```
 
 ## Number of Authors
@@ -259,9 +261,16 @@ ggplot(commit_changesizes, aes(x=diff_means)) + geom_density() +
 author_changesizes <- compute_changesizes('nauthors')
 summary(author_changesizes)
 ```
+Let's first investigate the signs of changepoints. We find slightly more negative than positive changepoints.
+```{r}
+negcpts <- author_changesizes %>% filter(diff_means < 0) %>% count() %>% pull()
+poscpts <- author_changesizes %>% filter(diff_means > 0) %>% count() %>% pull()
+c(negcpts, poscpts)
+```
 
 ```{r}
-ggplot(author_changesizes, aes(x=diff_means)) + geom_density() + 
-  xlab("Change in means at changepoint") + ylab("Density") +
-  ggtitle("Distribution of change sizes for author time series")
+author_sizes <- ggplot(author_changesizes, aes(x=diff_means)) + geom_density() + 
+  xlab("Change in means at changepoint") + ylab("Density") #+
+  #ggtitle("Distribution of change sizes for author time series")
+author_sizes
 ```

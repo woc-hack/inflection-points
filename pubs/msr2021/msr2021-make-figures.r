@@ -81,8 +81,7 @@ apts <- changepoints %>% select(author_cpts) %>% count(author_cpts)
 apts$author_cpts <- as.factor(apts$author_cpts)
 aplot <- ggplot(apts, aes(x=n, y=author_cpts)) + geom_point(size=2) +
   scale_x_continuous(breaks=seq(0,2700,200)) +
-  xlab("Number of Projects") + ylab("Number of Changepoints") +
-  ggtitle("Number of Changepoints in Active Authors")
+  xlab("Number of Projects") + ylab("Number of Changepoints")
 ggsave(filename="author-changepoints.pdf", path=figure_path, width=10, height=6)
 
 # Plot number of commits changepoint counts
@@ -91,8 +90,7 @@ commit_cpts$commit_cpts <- as.factor(commit_cpts$commit_cpts)
 commit_cpts
 cplot <- ggplot(commit_cpts, aes(x=n, y=commit_cpts)) + geom_point(size=2) +
   scale_x_continuous(breaks=seq(0,2600,200)) +
-  xlab("Number of Projects") + ylab("Number of Changepoints") +
-  ggtitle("Number of Changepoints in Monthly Commits")
+  xlab("Number of Projects") + ylab("Number of Changepoints")
 ggsave(filename="commit-changepoints.pdf", path=figure_path, width=10, height=6)
 
 #-------------------------------------------------------------------------- 
@@ -153,12 +151,10 @@ compute_changesizes <- function(column_name) {
 
 commit_changesizes <- compute_changesizes('ncommits')
 ggplot(commit_changesizes, aes(x=diff_means)) + geom_density() + 
-  xlab("Change in means at changepoint") + ylab("Density") +
-  ggtitle("Distribution of change sizes for commit time series")
+  xlab("Change in means at changepoint") + ylab("Density")
 ggsave(filename="commit-changesizes.pdf", path=figure_path, width=10, height=6)
 
 author_changesizes <- compute_changesizes('nauthors')
 ggplot(author_changesizes, aes(x=diff_means)) + geom_density() + 
-  xlab("Change in means at changepoint") + ylab("Density") +
-  ggtitle("Distribution of change sizes for author time series")
+  xlab("Change in means at changepoint") + ylab("Density")
 ggsave(filename="author-changesizes.pdf", path=figure_path, width=10, height=6)
