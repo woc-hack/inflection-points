@@ -16,8 +16,7 @@ We first take a sample of projects from the version R WoC dataset, then obtain a
 2. [data_to_timeseries.sh](data_to_timeseries.sh): Use _[timestamps_to_series.py](timestamps_to_series.py)_ to generate a time series of commits per month in CSV format for each project. Writes to _/data/play/inflection_points/new_timeseries_data/**Project-ID**.csv_ and should be run on __da0__.
      - This script was later improved to also include the number of unique authors per month using *[auth-comm_proj_report.py](auth-comm_proj_report.py)*
 
-3. [find-changepoints.r](find-changepoints.r): Use data output from _[data_to_timeseries.sh](data_to_timeseries.sh)_ to find changepoints.
-     Input and Output directories are determined by command line arguments.
+3. [validate-and-merge-time-series.r](validate-and-merge-time-series.r): Validates author and commit time series, merging time series that met the criteria in a single file named authors-and-commits-time-series.csv. Requires no arguments and uses version S data.
 
 ## Utility Scripts
 
